@@ -89,7 +89,7 @@ const RegisterPage = () => {
       if (error instanceof ZodError) {
         const validationErrors: Record<string, string> = {};
 
-        error.errors.forEach((err) => {
+        error.issues.forEach((err) => {
           validationErrors[String(err.path[0])] = err.message;
         });
 

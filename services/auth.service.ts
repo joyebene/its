@@ -147,8 +147,6 @@ export class AuthService {
         phone: data.phone,
         password: hashedPassword,
 
-        accountType: data.accountType,
-
         organization:
             invitation.organization,
 
