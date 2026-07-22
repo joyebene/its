@@ -47,9 +47,6 @@ export class ShipmentService {
             shipmentNumber:
                 await this.generateShipmentNumber(),
 
-            organization:
-                user.organization,
-
             createdBy: user._id,
 
         });
