@@ -52,7 +52,7 @@ const columns = [
 export default async function ShipmentsPage() {
   // TODO:
   // Replace with database query
-  const shipments = [];
+  const shipments: IShipment[] = [];
 
   return (
     <div className="space-y-8">
