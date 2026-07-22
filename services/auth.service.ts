@@ -76,7 +76,6 @@ export class AuthService {
             email,
             password,
             phone,
-            accountType,
         } = data;
 
         // Check if user already exists
