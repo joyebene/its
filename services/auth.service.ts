@@ -103,7 +103,6 @@ export class AuthService {
             email: email.toLowerCase(),
             password: hashedPassword,
             phone,
-            accountType,
         });
 
         return this.generateAuthResponse(user, 201);
