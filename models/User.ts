@@ -79,19 +79,6 @@ const UserSchema = new Schema<IUser>(
 
     avatar: String,
 
-    accountType: {
-      type: String,
-      enum: Object.values(AccountType),
-      default: AccountType.INDIVIDUAL,
-    },
-
-    organization: {
-      type: Schema.Types.ObjectId,
-      ref: "Organization",
-      default: null,
-      index: true,
-    },
-
     role: {
       type: String,
       enum: Object.values(UserRole),

@@ -30,7 +30,7 @@ export default function AuthCard({
             >
 
                 <h1 className="text-5xl font-bold mb-6">
-                    CARGO XPRESS
+                    Importation Management System
                 </h1>
 
                 <p className="max-w-md text-lg text-blue-100 leading-8">

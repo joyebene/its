@@ -56,6 +56,22 @@ const LoginPage = () => {
       });
 
       const data = await response.json();
+      
+
+       const userData = {
+          id: data.data.user.id,
+          firstName: data.data.user.firstName,
+          lastName: data.data.user.lastName,
+          fullName: `${data.data.user.firstName} ${data.data.user.lastName}`,
+          email: data.data.user.email,
+          role: data.data.user.role,
+          accessToken: data.accessToken,
+        };
+
+
+         localStorage.setItem('user', JSON.stringify(userData));
+        localStorage.setItem('accessToken', data.data.accessToken);
+
 
       if (response.ok) {
         router.push('/dashboard');

@@ -2,15 +2,29 @@
 
 import { useRouter } from "next/navigation";
 import ShipmentForm from "@/components/shipment/ShipmentForm";
+import { useEffect, useState } from "react";
 
 export default function CreateShipmentPage() {
   const router = useRouter();
+   const [token, setToken] = useState<string | null>(null);
+
+    useEffect(() => {
+
+    const accessToken =
+      localStorage.getItem("accessToken");
+
+    setToken(accessToken);
+
+  }, []);
+
+
 
   async function createShipment(values: any) {
     const response = await fetch("/api/shipments", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify(values),
     });

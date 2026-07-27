@@ -13,60 +13,62 @@ import {
 } from "@/lib/jwt";
 
 import Invitation from "@/models/Invitation";
+import { NotificationService } from "./notification.service";
+import { NotificationType } from "@/models/Notification";
 
 
 export class AuthService {
 
     private static async generateAuthResponse(
-    user: any,
-    status = 200
-) {
+        user: any,
+        status = 200
+    ) {
 
-    const payload = {
-        id: user._id.toString(),
-        email: user.email,
-        role: user.role,
-    };
+        const payload = {
+            id: user._id.toString(),
+            email: user.email,
+            role: user.role,
+        };
 
-    const accessToken =
-        generateAccessToken(payload);
+        const accessToken =
+            generateAccessToken(payload);
 
-    const refreshToken =
-        generateRefreshToken(payload);
+        const refreshToken =
+            generateRefreshToken(payload);
 
-    user.refreshToken =
-        refreshToken;
+        user.refreshToken =
+            refreshToken;
 
-    await user.save();
+        await user.save();
 
-    const response =
-        NextResponse.json(
-            {
-                success: true,
-                message:
-                    "Authentication successful.",
-                data: {
-                    accessToken,
-                    user,
+        const response =
+            NextResponse.json(
+                {
+                    success: true,
+                    message:
+                        "Authentication successful.",
+                    data: {
+                        accessToken,
+                        user,
+                    },
                 },
-            },
-            { status }
-        );
+                { status }
+            );
 
-    response.cookies.set({
-        name: "refreshToken",
-        value: refreshToken,
-        httpOnly: true,
-        secure:
-            process.env.NODE_ENV ===
-            "production",
-        sameSite: "strict",
-        path: "/",
-        maxAge: 60 * 60 * 24 * 7,
-    });
+        response.cookies.set({
+            name: "refreshToken",
+            value: refreshToken,
+            httpOnly: true,
+            secure:
+                process.env.NODE_ENV ===
+                "production",
+            sameSite: "strict",
+            path: "/",
+            maxAge: 60 * 60 * 24 * 7,
+        });
 
-    return response;
-}
+        return response;
+    }
 
     //register
     static async register(data: RegisterInput) {
@@ -105,58 +107,82 @@ export class AuthService {
             phone,
         });
 
+        await NotificationService.create(
+
+            user._id.toString(),
+
+            "Welcome to Import Tracking System",
+
+            `Hello ${user.firstName}, your account has been created successfully.`,
+
+            NotificationType.SUCCESS
+
+        );
+
+        // Notify admins
+        await NotificationService.notifyAdmins(
+
+            "New User Registered",
+
+            `${user.firstName} ${user.lastName} has created a new account.`,
+
+            NotificationType.INFO
+
+        );
+
+
         return this.generateAuthResponse(user, 201);
     }
 
     static async registerByInvitation(
-    data: InvitationRegisterInput
-) {
+        data: InvitationRegisterInput
+    ) {
 
-    const invitation =
-        await Invitation.findOne({
-            token: data.token,
-            accepted: false,
-        });
+        const invitation =
+            await Invitation.findOne({
+                token: data.token,
+                accepted: false,
+            });
 
-    if (!invitation) {
-        throw new Error(
-            "Invalid or expired invitation."
-        );
-    }
+        if (!invitation) {
+            throw new Error(
+                "Invalid or expired invitation."
+            );
+        }
 
-    const existingUser =
-        await User.findOne({
+        const existingUser =
+            await User.findOne({
+                email: invitation.email,
+            });
+
+        if (existingUser) {
+            throw new Error(
+                "User already exists."
+            );
+        }
+
+        const hashedPassword =
+            await hashPassword(data.password);
+
+        const user = await User.create({
+            firstName: data.firstName,
+            lastName: data.lastName,
             email: invitation.email,
+            phone: data.phone,
+            password: hashedPassword,
+
+            organization:
+                invitation.organization,
+
+            role: invitation.role,
         });
 
-    if (existingUser) {
-        throw new Error(
-            "User already exists."
-        );
+        invitation.accepted = true;
+
+        await invitation.save();
+
+        return this.generateAuthResponse(user, 201);
     }
-
-    const hashedPassword =
-        await hashPassword(data.password);
-
-    const user = await User.create({
-        firstName: data.firstName,
-        lastName: data.lastName,
-        email: invitation.email,
-        phone: data.phone,
-        password: hashedPassword,
-
-        organization:
-            invitation.organization,
-
-        role: invitation.role,
-    });
-
-    invitation.accepted = true;
-
-    await invitation.save();
-
-    return this.generateAuthResponse(user, 201);
-}
 
     //login
     static async login(data: LoginInput) {

@@ -11,6 +11,7 @@ export default function PageHeader({
     title,
     description,
     action,
+    children
 }: PageHeaderProps) {
     return (
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
@@ -26,8 +27,11 @@ export default function PageHeader({
                     </p>
                 )}
             </div>
+            <div className="w-fit">
+                 {action ?? children}
+            </div>
 
-            {action}
+           
         </div>
     );
 }

@@ -1,32 +1,35 @@
-import { Plus } from "lucide-react";
+import { ReactNode } from "react";
 
-import Button from "@/components/shared/Button";
+interface DashboardHeaderProps {
+  title?: string;
+  subtitle?: string;
+  action?: ReactNode;
+  children?: ReactNode;
+  className?: string;
+}
 
-export default function DashboardHeader() {
-    return (
-        <div className="mb-8 flex flex-col justify-between gap-6 md:flex-row md:items-center">
+export default function DashboardHeader({
+  title = "How is it going?",
+  subtitle = "Monitor all shipments, customs clearance and deliveries.",
+  action,
+  children,
+  className,
+}: DashboardHeaderProps) {
+  return (
+    <div
+      className={`mb-8 flex flex-col justify-between gap-6 md:flex-row md:items-center ${className || ""}`}
+    >
+      <div>
+        <h1 className="text-3xl font-bold text-slate-900">{title}</h1>
+        {subtitle && <p className="mt-2 text-slate-500">{subtitle}</p>}
+      </div>
 
-            <div>
-
-                <h1 className="text-3xl font-bold text-slate-900">
-                    How is it going?
-                </h1>
-
-                <p className="mt-2 text-slate-500">
-                    Monitor all shipments, customs clearance and deliveries.
-                </p>
-
-            </div>
-
-        <div className="w-fit">
-               <Button className="w-fit px-6 flex items-center gap-2">
-                <Plus className="mr-2 h-5 w-5" />
-
-                Create Shipment
-            </Button> 
+      {(action || children) && (
+        <div className="flex items-center gap-3">
+          {action}
+          {children}
         </div>
-        
-
-        </div>
-    );
+      )}
+    </div>
+  );
 }

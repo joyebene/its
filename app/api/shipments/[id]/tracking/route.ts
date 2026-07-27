@@ -76,14 +76,12 @@ export async function GET(
     try {
         await connectDB();
 
-        const user = await auth(req);
 
         const { id } = await params;
 
         const timeline =
             await TrackingService.timeline(
                 id,
-                user
             );
 
         return success(timeline);

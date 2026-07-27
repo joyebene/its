@@ -30,14 +30,11 @@ export async function GET(
   try {
     await connectDB();
 
-    const user = await auth(req);
-
     const { id } = await params;
 
     const shipment =
       await ShipmentService.findById(
-        id,
-        user
+        id
       );
 
     return success(shipment);
@@ -93,13 +90,11 @@ export async function DELETE(
   try {
     await connectDB();
 
-    const user = await auth(req);
 
     const { id } = await params;
 
     await ShipmentService.delete(
       id,
-      user
     );
 
     return success(

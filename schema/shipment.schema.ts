@@ -23,8 +23,6 @@ export const createShipmentSchema = z.object({
 
     containerNumber: z.string().optional(),
 
-    trackingNumber: z.string().optional(),
-
     estimatedDeparture: z.coerce.date().optional(),
 
     estimatedArrival: z.coerce.date().optional(),

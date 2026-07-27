@@ -7,6 +7,7 @@ import {
 } from "lucide-react";
 
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import Link from "next/link";
 
 interface HeaderProps {
     openSidebar: () => void;
@@ -63,9 +64,9 @@ export default function Header({
 
                 {/* Notification */}
 
-                <button className="rounded-xl border p-3 hover:bg-slate-100">
+                <Link href="/notifications" className="rounded-xl border p-3 hover:bg-slate-100">
                     <Bell size={20} />
-                </button>
+                </Link>
 
                 {/* Avatar */}
 

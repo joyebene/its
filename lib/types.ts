@@ -98,28 +98,32 @@ export enum CustomsStatus {
 }
 
 export interface Customs {
-
   _id: string;
 
   shipment: {
     _id: string;
+    shipmentNumber?: string;
     trackingNumber: string;
-    containerNumber?: string;
+
+    container?: {
+      _id: string;
+      containerNumber: string;
+    };
   };
 
-  status: CustomsStatus
+  status: CustomsStatus;
 
   dutyAmount: number;
 
   remarks?: string;
 
   processedBy?: {
-    name: string;
+    _id: string;
+    firstName: string;
+    lastName: string;
   };
 
-
   createdAt: string;
-
 }
 
 export enum DeliveryStatus {

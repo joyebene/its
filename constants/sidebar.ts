@@ -7,10 +7,12 @@ import {
   ShieldCheck,
   Users,
   Settings,
+  Bell,
+  FileBarChart,
 } from "lucide-react";
 
-
 export const sidebarLinks = [
+  // ===== DASHBOARDS =====
   {
     title: "Dashboard",
     href: "/dashboard",
@@ -18,6 +20,18 @@ export const sidebarLinks = [
     roles: Object.values(UserRole), // Everyone
   },
 
+  // ===== USERS (Admin only) =====
+  {
+    title: "Users",
+    href: "/users",
+    icon: Users,
+    roles: [
+      UserRole.SUPER_ADMIN,
+      UserRole.ADMIN,
+    ],
+  },
+
+  // ===== SHIPMENTS =====
   {
     title: "Shipments",
     href: "/shipments",
@@ -30,6 +44,15 @@ export const sidebarLinks = [
     ],
   },
 
+  // Customer specific - My Shipments
+  {
+    title: "My Shipments",
+    href: "/customers/shipments",
+    icon: Package,
+    roles: [UserRole.USER],
+  },
+
+  // ===== TRACKING =====
   {
     title: "Tracking",
     href: "/tracking",
@@ -38,10 +61,12 @@ export const sidebarLinks = [
       UserRole.SUPER_ADMIN,
       UserRole.ADMIN,
       UserRole.LOGISTICS,
+      UserRole.USER,
       UserRole.DELIVERY,
     ],
   },
 
+  // ===== CONTAINERS =====
   {
     title: "Containers",
     href: "/containers",
@@ -54,8 +79,9 @@ export const sidebarLinks = [
     ],
   },
 
+  // ===== CUSTOMS =====
   {
-    title: "Customs",
+    title: "Customs Clearance",
     href: "/customs",
     icon: ShieldCheck,
     roles: [
@@ -65,16 +91,28 @@ export const sidebarLinks = [
     ],
   },
 
+  // ===== REPORTS =====
   {
-    title: "Users",
-    href: "/users",
-    icon: Users,
+    title: "Reports",
+    href: "/reports",
+    icon: FileBarChart,
     roles: [
       UserRole.SUPER_ADMIN,
       UserRole.ADMIN,
+      UserRole.LOGISTICS,
+      UserRole.CUSTOMS,
     ],
   },
 
+  // ===== NOTIFICATIONS =====
+  {
+    title: "Notifications",
+    href: "/notifications",
+    icon: Bell,
+    roles: Object.values(UserRole),
+  },
+
+  // ===== SETTINGS =====
   {
     title: "Settings",
     href: "/settings",

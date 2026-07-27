@@ -6,8 +6,6 @@ import Button from "@/components/shared/Button";
 import { ShippingMethod } from "@/lib/types";
 
 interface ShipmentFormData {
-  shipmentNumber: string;
-  trackingNumber: string;
   carrier: string;
   containerNumber: string;
   shippingMethod: ShippingMethod;
@@ -27,8 +25,6 @@ export default function ShipmentForm({
   loading,
 }: Props) {
   const [form, setForm] = useState<ShipmentFormData>({
-    shipmentNumber: defaultValues?.shipmentNumber ?? "",
-    trackingNumber: defaultValues?.trackingNumber ?? "",
     carrier: defaultValues?.carrier ?? "",
     containerNumber: defaultValues?.containerNumber ?? "",
     shippingMethod:
@@ -59,19 +55,6 @@ export default function ShipmentForm({
       }}
     >
       <div className="grid md:grid-cols-2 gap-5">
-        <Input
-          label="Shipment Number"
-          name="shipmentNumber"
-          value={form.shipmentNumber}
-          onChange={handleChange}
-        />
-
-        <Input
-          label="Tracking Number"
-          name="trackingNumber"
-          value={form.trackingNumber}
-          onChange={handleChange}
-        />
 
         <Input
           label="Carrier"

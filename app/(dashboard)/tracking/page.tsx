@@ -1,46 +1,107 @@
+"use client";
+
+import { useState } from "react";
+
 import PageHeader from "@/components/shared/PageHeader";
 import Card from "@/components/shared/Card";
 import Input from "@/components/shared/Input";
 import Button from "@/components/shared/Button";
-import DataTable, { TableColumn } from "@/components/shared/DataTable";
+import DataTable, {
+  TableColumn,
+} from "@/components/shared/DataTable";
 
-const trackingHistory = [
-  {
-    _id: "1",
-    trackingNumber: "TRK-001",
-    shipmentNumber: "SHP-001",
-    status: "IN_TRANSIT",
-    updatedBy: "Logistics",
-  },
-  {
-    _id: "2",
-    trackingNumber: "TRK-002",
-    shipmentNumber: "SHP-002",
-    status: "DELIVERED",
-    updatedBy: "Delivery",
-  },
-];
+type TrackingTimeline = {
+  _id: string;
+  status: string;
+  location: string;
+  remarks: string;
+  eventTime: string;
+  updatedBy?: {
+    firstName: string;
+    lastName: string;
+  };
+};
 
-const columns: TableColumn<(typeof trackingHistory)[number]>[] = [
-  {
-    key: "trackingNumber",
-    title: "Tracking Number",
-  },
-  {
-    key: "shipmentNumber",
-    title: "Shipment",
-  },
+type TrackingResponse = {
+  shipment: {
+    _id: string;
+    shipmentNumber: string;
+    trackingNumber: string;
+    status: string;
+  };
+  timeline: TrackingTimeline[];
+};
+
+const columns: TableColumn<TrackingTimeline>[] = [
   {
     key: "status",
-    title: "Current Status",
+    title: "Status",
+  },
+  {
+    key: "location",
+    title: "Location",
+  },
+  {
+    key: "remarks",
+    title: "Remarks",
+  },
+  {
+    key: "eventTime",
+    title: "Date",
+    render: (item) =>
+      new Date(item.eventTime).toLocaleString(),
   },
   {
     key: "updatedBy",
     title: "Updated By",
+    render: (item) =>
+      item.updatedBy
+        ? `${item.updatedBy.firstName} ${item.updatedBy.lastName}`
+        : "-",
   },
-] as const;
+];
 
 export default function TrackingPage() {
+  const [trackingNumber, setTrackingNumber] = useState("");
+
+  const [tracking, setTracking] =
+    useState<TrackingResponse | null>(null);
+
+  const [loading, setLoading] = useState(false);
+
+  const [error, setError] = useState("");
+
+  async function handleTrack() {
+    if (!trackingNumber.trim()) {
+      setError("Please enter a tracking number.");
+      return;
+    }
+
+    try {
+      setLoading(true);
+      setError("");
+
+      const response = await fetch(
+        `/api/tracking?trackingNumber=${trackingNumber}`
+      );
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        setTracking(null);
+        setError(result.message || "Shipment not found.");
+        return;
+      }
+
+      setTracking(result.data);
+    } catch {
+      setTracking(null);
+      setError("Something went wrong.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
   return (
     <div className="space-y-6">
 
@@ -50,37 +111,88 @@ export default function TrackingPage() {
       />
 
       <Card title="Track Shipment">
+        <div className="flex flex-col gap-4 md:flex-row md:items-end">
 
-        <div className="flex flex-col gap-4 md:flex-row md:items-center">
+          <div className="flex-1">
+            <Input
+              label="Tracking Number"
+              name="trackingNumber"
+              value={trackingNumber}
+              onChange={(e) =>
+                setTrackingNumber(e.target.value)
+              }
+              placeholder="Enter tracking number..."
+            />
+          </div>
 
-          <Input
-           label="Tracking Number"
-            name="tracking"
-            placeholder="Enter Tracking Number..."
-          />
-            <div className="md:w-fit md:mt-5">
-               <Button className="px-2 sm:px-3 md:px-4">
+          <Button
+            onClick={handleTrack}
+            loading={loading}
+            className="px-6"
+          >
             Track Shipment
-          </Button>   
-            </div>
-        
+          </Button>
 
         </div>
 
+        {error && (
+          <p className="mt-4 text-sm text-red-500">
+            {error}
+          </p>
+        )}
       </Card>
 
-      <Card
-        title="Recent Tracking"
-        description="Recently tracked shipments."
-      >
+      {tracking && (
+        <Card
+          title="Shipment Information"
+          description="Shipment details."
+        >
+          <div className="grid gap-6 md:grid-cols-3">
 
+            <div>
+              <p className="text-sm text-gray-500">
+                Shipment Number
+              </p>
+
+              <p className="font-semibold">
+                {tracking.shipment.shipmentNumber}
+              </p>
+            </div>
+
+            <div>
+              <p className="text-sm text-gray-500">
+                Tracking Number
+              </p>
+
+              <p className="font-semibold">
+                {tracking.shipment.trackingNumber}
+              </p>
+            </div>
+
+            <div>
+              <p className="text-sm text-gray-500">
+                Current Status
+              </p>
+
+              <p className="font-semibold">
+                {tracking.shipment.status}
+              </p>
+            </div>
+
+          </div>
+        </Card>
+      )}
+
+      <Card
+        title="Tracking Timeline"
+        description="Shipment movement history."
+      >
         <DataTable
           columns={columns}
-          data={trackingHistory}
+          data={tracking?.timeline ?? []}
           resource="tracking"
           showEdit={false}
         />
-
       </Card>
 
     </div>

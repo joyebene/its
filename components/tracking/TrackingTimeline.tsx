@@ -13,7 +13,12 @@ const timeline = [
   "Delivered",
 ];
 
-export default function TrackingTimeline() {
+interface TrackingTimelineProps {
+  timeline: any[];
+}
+
+
+export default function TrackingTimeline({timeline}: TrackingTimelineProps) {
   return (
     <Card title="Shipment Timeline">
 

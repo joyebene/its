@@ -1,4 +1,4 @@
-import { UserRole } from "@/lib/types";
+import { useEffect, useState } from "react";
 import Logo from "../shared/Logo";
 import NavItem from "./NavItem";
 import { sidebarLinks } from "@/constants/sidebar";
@@ -6,9 +6,21 @@ import { hasRole } from "@/lib/permissions";
 
 export default function Sidebar() {
 
+    const [user, setUser] = useState<any>(null);
+
+    useEffect(() => {
+        const storedUser = localStorage.getItem("user");
+
+        if (storedUser) {
+            setUser(JSON.parse(storedUser));
+        }
+    }, []);
+
+
     const filteredLinks = sidebarLinks.filter((item) =>
-        hasRole(UserRole.ADMIN, item.roles)
+        user ? hasRole(user, item.roles) : false
     );
+
 
     return (
         <aside className="fixed left-0 top-0 hidden h-screen w-72 border-r bg-white lg:flex lg:flex-col">

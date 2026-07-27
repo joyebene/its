@@ -26,7 +26,7 @@ const columns = [
             </p>
 
             <p className="text-xs text-slate-500">
-                {row.shipment.containerNumber}
+                {row.shipment.container?.containerNumber || "-"}
             </p>
         </div>
     )
@@ -60,7 +60,7 @@ const columns = [
     title:"Processed By",
 
     render:(row:Customs)=>(
-        row.processedBy?.name || "-"
+        row.processedBy?.firstName + " " + row.processedBy?.lastName || "-"
     )
 },
 

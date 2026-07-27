@@ -1,3 +1,5 @@
+"use client";
+
 import Link from "next/link";
 import {
   Package,
@@ -11,6 +13,7 @@ import Button from "@/components/shared/Button";
 import DataTable from "@/components/shared/DataTable";
 import ShipmentStatusBadge from "@/components/shipment/ShipmentStatusBadge";
 import { IShipment } from "@/lib/types";
+import { useEffect, useState } from "react";
 
 
 const columns = [
@@ -49,10 +52,33 @@ const columns = [
   },
 ];
 
-export default async function ShipmentsPage() {
-  // TODO:
-  // Replace with database query
-  const shipments: IShipment[] = [];
+export default function ShipmentsPage() {
+
+  const [shipments, setShipments] = useState<IShipment[]>([]);
+  const [loading, setLoading] = useState(true);
+
+
+  useEffect(() => {
+    const fetchShipments = async () => {
+      const token = localStorage.getItem("accessToken");
+
+      const res = await fetch("/api/shipments", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const result = await res.json();
+
+      setShipments(result.data || []);
+      setLoading(false);
+    };
+
+    fetchShipments();
+  }, []);
+
+  if (loading) return <p>Loading...</p>;
+
 
   return (
     <div className="space-y-8">

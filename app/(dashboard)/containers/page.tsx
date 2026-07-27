@@ -1,3 +1,6 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import Link from "next/link";
 
 import PageHeader from "@/components/shared/PageHeader";
@@ -12,44 +15,17 @@ import ContainerStatusBadge from "@/components/container/ContainerStatusBadge";
 
 interface Container {
   _id: string;
-
   containerNumber: string;
-
   type: string;
-
   carrier: string;
-
   shipmentCount: number;
-
-  expectedArrival: string;
-
+  expectedArrival?: string;
   status:
     | "AVAILABLE"
     | "LOADED"
     | "IN_TRANSIT"
     | "ARRIVED";
 }
-
-const containers: Container[] = [
-  {
-    _id: "1",
-    containerNumber: "MSKU1234567",
-    type: "40FT",
-    carrier: "Maersk",
-    shipmentCount: 24,
-    expectedArrival: "2026-07-30",
-    status: "IN_TRANSIT",
-  },
-  {
-    _id: "2",
-    containerNumber: "OOLU8877665",
-    type: "20FT",
-    carrier: "MSC",
-    shipmentCount: 12,
-    expectedArrival: "2026-07-25",
-    status: "ARRIVED",
-  },
-];
 
 const columns: TableColumn<Container>[] = [
   {
@@ -71,19 +47,64 @@ const columns: TableColumn<Container>[] = [
   {
     key: "expectedArrival",
     title: "Arrival",
+    render: (row) =>
+      row.expectedArrival
+        ? new Date(row.expectedArrival).toLocaleDateString()
+        : "-",
   },
   {
     key: "status",
     title: "Status",
     render: (row) => (
-      <ContainerStatusBadge
-        status={row.status}
-      />
+      <ContainerStatusBadge status={row.status} />
     ),
   },
 ];
 
 export default function ContainersPage() {
+  const [containers, setContainers] = useState<Container[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState("");
+
+  useEffect(() => {
+    fetchContainers();
+  }, []);
+
+  async function fetchContainers() {
+    try {
+      const token = localStorage.getItem("accessToken");
+
+      const res = await fetch("/api/containers", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const result = await res.json();
+
+      if (res.ok) {
+        setContainers(result.data);
+      }
+    } catch (error) {
+      console.error("Failed to fetch containers", error);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  const filteredContainers = containers.filter(
+    (container) =>
+      container.containerNumber
+        .toLowerCase()
+        .includes(search.toLowerCase()) ||
+      container.carrier
+        .toLowerCase()
+        .includes(search.toLowerCase()) ||
+      container.type
+        .toLowerCase()
+        .includes(search.toLowerCase())
+  );
+
   return (
     <div className="space-y-6">
 
@@ -99,21 +120,20 @@ export default function ContainersPage() {
       </PageHeader>
 
       <Card>
-
         <div className="md:w-1/2">
           <Input
-          label=""
-          name="search"
-          placeholder="Search containers..."
-        />   
+            label=""
+            name="search"
+            placeholder="Search containers..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
         </div>
-       
-
       </Card>
 
       <DataTable
         columns={columns}
-        data={containers}
+        data={filteredContainers}
         resource="containers"
       />
 

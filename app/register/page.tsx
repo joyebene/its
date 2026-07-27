@@ -21,7 +21,6 @@ export enum UserRole {
   WAREHOUSE = "WAREHOUSE",
   LOGISTICS = "LOGISTICS",
   CUSTOMS = "CUSTOMS",
-  DELIVERY = "DELIVERY",
 }
 
 const RegisterPage = () => {

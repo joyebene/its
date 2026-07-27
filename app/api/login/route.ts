@@ -35,7 +35,6 @@ export async function POST(req: NextRequest) {
           lastName: result.user.lastName,
           email: result.user.email,
           role: result.user.role,
-          accountType: result.user.accountType,
         },
       },
       "Login successful"

@@ -1,7 +1,82 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { useParams } from "next/navigation";
+
 import Card from "@/components/shared/Card";
 import PageHeader from "@/components/shared/PageHeader";
+import ContainerStatusBadge from "@/components/container/ContainerStatusBadge";
+
+interface Container {
+  _id: string;
+  containerNumber: string;
+  carrier: string;
+  type: string;
+  sealNumber?: string;
+  expectedDeparture?: string;
+  expectedArrival?: string;
+  status:
+    | "AVAILABLE"
+    | "LOADED"
+    | "IN_TRANSIT"
+    | "ARRIVED";
+}
 
 export default function ContainerDetailsPage() {
+  const { id } = useParams();
+
+  const [container, setContainer] =
+    useState<Container | null>(null);
+
+  const [loading, setLoading] =
+    useState(true);
+
+  useEffect(() => {
+    fetchContainer();
+  }, [id]);
+
+  async function fetchContainer() {
+    try {
+      const token =
+        localStorage.getItem("accessToken");
+
+      const res = await fetch(
+        `/api/containers/${id}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      const result = await res.json();
+
+      if (res.ok) {
+        setContainer(result.data.container);
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  if (loading) {
+    return (
+      <p className="text-center py-10">
+        Loading...
+      </p>
+    );
+  }
+
+  if (!container) {
+    return (
+      <p className="text-center py-10">
+        Container not found.
+      </p>
+    );
+  }
+
   return (
     <div className="space-y-6">
 
@@ -16,33 +91,59 @@ export default function ContainerDetailsPage() {
 
           <Info
             label="Container Number"
-            value="MSKU1234567"
+            value={container.containerNumber}
           />
 
           <Info
             label="Carrier"
-            value="Maersk"
+            value={container.carrier}
           />
 
           <Info
             label="Container Type"
-            value="40FT"
+            value={container.type}
           />
 
           <Info
-            label="Origin"
-            value="Shanghai"
+            label="Seal Number"
+            value={
+              container.sealNumber || "-"
+            }
           />
 
           <Info
-            label="Destination"
-            value="Lagos"
+            label="Expected Departure"
+            value={
+              container.expectedDeparture
+                ? new Date(
+                    container.expectedDeparture
+                  ).toLocaleDateString()
+                : "-"
+            }
           />
 
           <Info
-            label="Status"
-            value="IN TRANSIT"
+            label="Expected Arrival"
+            value={
+              container.expectedArrival
+                ? new Date(
+                    container.expectedArrival
+                  ).toLocaleDateString()
+                : "-"
+            }
           />
+
+          <div>
+            <p className="text-sm text-slate-500">
+              Status
+            </p>
+
+            <div className="mt-1">
+              <ContainerStatusBadge
+                status={container.status}
+              />
+            </div>
+          </div>
 
         </div>
 

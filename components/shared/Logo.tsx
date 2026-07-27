@@ -13,7 +13,7 @@ export default function Logo() {
 
             <div>
                 <h1 className="text-lg font-bold text-slate-900">
-                    CargoXpress
+                    Importation Management System
                 </h1>
 
                 <p className="text-xs text-slate-500">

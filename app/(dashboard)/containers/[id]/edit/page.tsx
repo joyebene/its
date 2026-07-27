@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { useRouter, useParams } from "next/navigation";
 
 import PageHeader from "@/components/shared/PageHeader";
 import Card from "@/components/shared/Card";
@@ -9,73 +9,140 @@ import Input from "@/components/shared/Input";
 import Button from "@/components/shared/Button";
 
 interface ContainerForm {
-  containerNumber: string;
   type: string;
   carrier: string;
-  originPort: string;
-  destinationPort: string;
+  sealNumber: string;
+  expectedDeparture: string;
   expectedArrival: string;
   status: string;
 }
 
 export default function EditContainerPage() {
   const router = useRouter();
-
-  // Temporary dummy data
-  const [formData, setFormData] = useState<ContainerForm>({
-    containerNumber: "MSKU1234567",
-    type: "40FT",
-    carrier: "Maersk",
-    originPort: "Shanghai",
-    destinationPort: "Lagos",
-    expectedArrival: "2026-08-20",
-    status: "IN_TRANSIT",
-  });
+  const { id } = useParams();
 
   const [loading, setLoading] = useState(false);
+  const [fetching, setFetching] = useState(true);
 
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
-  ) => {
+  const [formData, setFormData] = useState<ContainerForm>({
+    type: "",
+    carrier: "",
+    sealNumber: "",
+    expectedDeparture: "",
+    expectedArrival: "",
+    status: "AVAILABLE",
+  });
+
+  useEffect(() => {
+    if (id) {
+      fetchContainer();
+    }
+  }, [id]);
+
+  async function fetchContainer() {
+    try {
+      const token = localStorage.getItem("accessToken");
+
+      const res = await fetch(`/api/containers/${id}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const result = await res.json();
+
+      if (res.ok) {
+        const container = result.data.container;
+
+        setFormData({
+          type: container.type ?? "",
+          carrier: container.carrier ?? "",
+          sealNumber: container.sealNumber ?? "",
+          expectedDeparture: container.expectedDeparture
+            ? container.expectedDeparture.slice(0, 10)
+            : "",
+          expectedArrival: container.expectedArrival
+            ? container.expectedArrival.slice(0, 10)
+            : "",
+          status: container.status,
+        });
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setFetching(false);
+    }
+  }
+
+  function handleChange(
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLSelectElement
+    >
+  ) {
     setFormData((prev) => ({
       ...prev,
       [e.target.name]: e.target.value,
     }));
-  };
+  }
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  async function handleSubmit(
+    e: React.FormEvent
+  ) {
     e.preventDefault();
 
-    setLoading(true);
+    try {
+      setLoading(true);
 
-    // TODO:
-    // await fetch(`/api/containers/${id}`, {
-    //   method: "PUT",
-    //   body: JSON.stringify(formData),
-    // })
+      const token = localStorage.getItem("accessToken");
 
-    setTimeout(() => {
-      setLoading(false);
+      const res = await fetch(`/api/containers/${id}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(formData),
+      });
+
+      const result = await res.json();
+
+      if (!res.ok) {
+        alert(result.message);
+        return;
+      }
+
       router.push("/containers");
-    }, 1000);
-  };
+    } catch (err) {
+      console.error(err);
+      alert("Failed to update container.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  if (fetching) {
+    return <p className="text-center py-10">Loading...</p>;
+  }
 
   return (
     <div className="space-y-6">
+
       <PageHeader
         title="Edit Container"
         description="Update container information."
       />
 
       <Card title="Container Details">
+
         <form
           onSubmit={handleSubmit}
           className="grid gap-5 md:grid-cols-2"
         >
+
           <Input
-            label="Container Number"
-            name="containerNumber"
-            value={formData.containerNumber}
+            label="Carrier"
+            name="carrier"
+            value={formData.carrier}
             onChange={handleChange}
           />
 
@@ -88,32 +155,26 @@ export default function EditContainerPage() {
               name="type"
               value={formData.type}
               onChange={handleChange}
-              className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 outline-none focus:border-blue-500"
+              className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3"
             >
               <option value="20FT">20FT</option>
               <option value="40FT">40FT</option>
-              <option value="LCL">LCL</option>
+              <option value="40HQ">40HQ</option>
             </select>
           </div>
 
           <Input
-            label="Carrier"
-            name="carrier"
-            value={formData.carrier}
+            label="Seal Number"
+            name="sealNumber"
+            value={formData.sealNumber}
             onChange={handleChange}
           />
 
           <Input
-            label="Origin Port"
-            name="originPort"
-            value={formData.originPort}
-            onChange={handleChange}
-          />
-
-          <Input
-            label="Destination Port"
-            name="destinationPort"
-            value={formData.destinationPort}
+            type="date"
+            label="Expected Departure"
+            name="expectedDeparture"
+            value={formData.expectedDeparture}
             onChange={handleChange}
           />
 
@@ -134,7 +195,7 @@ export default function EditContainerPage() {
               name="status"
               value={formData.status}
               onChange={handleChange}
-              className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 outline-none focus:border-blue-500"
+              className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3"
             >
               <option value="AVAILABLE">Available</option>
               <option value="LOADED">Loaded</option>
@@ -144,6 +205,7 @@ export default function EditContainerPage() {
           </div>
 
           <div className="md:col-span-2 flex justify-end gap-3">
+
             <Button
               type="button"
               variant="secondary"
@@ -158,9 +220,13 @@ export default function EditContainerPage() {
             >
               Update Container
             </Button>
+
           </div>
+
         </form>
+
       </Card>
+
     </div>
   );
 }
