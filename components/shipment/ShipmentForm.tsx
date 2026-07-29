@@ -5,7 +5,27 @@ import Input from "@/components/shared/Input";
 import Button from "@/components/shared/Button";
 import { ShippingMethod } from "@/lib/types";
 
-interface ShipmentFormData {
+interface Product {
+  _id: string;
+  name: string;
+  sku: string;
+}
+
+export interface ShipmentFormData {
+  product: string;
+
+  origin: {
+    city: string;
+    state: string;
+    country: string;
+  };
+
+  destination: {
+    city: string;
+    state: string;
+    country: string;
+  };
+
   carrier: string;
   containerNumber: string;
   shippingMethod: ShippingMethod;
@@ -14,17 +34,33 @@ interface ShipmentFormData {
 }
 
 interface Props {
+  products: Product[];
   defaultValues?: Partial<ShipmentFormData>;
   onSubmit: (values: ShipmentFormData) => Promise<void>;
   loading?: boolean;
 }
 
 export default function ShipmentForm({
+  products,
   defaultValues,
   onSubmit,
   loading,
 }: Props) {
   const [form, setForm] = useState<ShipmentFormData>({
+    product: defaultValues?.product ?? "",
+
+    origin: {
+      city: defaultValues?.origin?.city ?? "",
+      state: defaultValues?.origin?.state ?? "",
+      country: defaultValues?.origin?.country ?? "",
+    },
+
+    destination: {
+      city: defaultValues?.destination?.city ?? "",
+      state: defaultValues?.destination?.state ?? "",
+      country: defaultValues?.destination?.country ?? "",
+    },
+
     carrier: defaultValues?.carrier ?? "",
     containerNumber: defaultValues?.containerNumber ?? "",
     shippingMethod:
@@ -40,10 +76,26 @@ export default function ShipmentForm({
       | React.ChangeEvent<HTMLInputElement>
       | React.ChangeEvent<HTMLSelectElement>
   ) => {
-    setForm({
-      ...form,
-      [e.target.name]: e.target.value,
-    });
+    const { name, value } = e.target;
+
+    if (name.includes(".")) {
+      const [parent, child] = name.split(".");
+
+      setForm((prev) => ({
+        ...prev,
+        [parent]: {
+          ...(prev as any)[parent],
+          [child]: value,
+        },
+      }));
+
+      return;
+    }
+
+    setForm((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
   };
 
   return (
@@ -54,7 +106,35 @@ export default function ShipmentForm({
         onSubmit(form);
       }}
     >
-      <div className="grid md:grid-cols-2 gap-5">
+      <div className="grid gap-5 md:grid-cols-2">
+
+        {/* Product */}
+        <div>
+          <label className="mb-2 block text-sm font-medium">
+            Product
+          </label>
+
+          <select
+            name="product"
+            value={form.product}
+            onChange={handleChange}
+            className="w-full rounded-xl border px-4 py-3"
+            required
+          >
+            <option value="">
+              Select Product
+            </option>
+
+            {products.map((product) => (
+              <option
+                key={product._id}
+                value={product._id}
+              >
+                {product.name} ({product.sku})
+              </option>
+            ))}
+          </select>
+        </div>
 
         <Input
           label="Carrier"
@@ -105,6 +185,62 @@ export default function ShipmentForm({
           type="date"
           name="estimatedArrival"
           value={form.estimatedArrival}
+          onChange={handleChange}
+        />
+
+        {/* Origin */}
+        <div className="md:col-span-2">
+          <h3 className="font-semibold text-lg border-b pb-2">
+            Origin Address
+          </h3>
+        </div>
+
+        <Input
+          label="Origin City"
+          name="origin.city"
+          value={form.origin.city}
+          onChange={handleChange}
+        />
+
+        <Input
+          label="Origin State"
+          name="origin.state"
+          value={form.origin.state}
+          onChange={handleChange}
+        />
+
+        <Input
+          label="Origin Country"
+          name="origin.country"
+          value={form.origin.country}
+          onChange={handleChange}
+        />
+
+        {/* Destination */}
+        <div className="md:col-span-2 mt-4">
+          <h3 className="font-semibold text-lg border-b pb-2">
+            Destination Address
+          </h3>
+        </div>
+
+        <Input
+          label="Destination City"
+          name="destination.city"
+          value={form.destination.city}
+          onChange={handleChange}
+        />
+
+        <Input
+          label="Destination State"
+          name="destination.state"
+          value={form.destination.state}
+          onChange={handleChange}
+        />
+
+        <Input
+          label="Destination Country"
+          name="destination.country"
+          value={form.destination.country}
           onChange={handleChange}
         />
       </div>

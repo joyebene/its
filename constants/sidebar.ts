@@ -9,6 +9,7 @@ import {
   Settings,
   Bell,
   FileBarChart,
+  Package2,
 } from "lucide-react";
 
 export const sidebarLinks = [
@@ -44,12 +45,11 @@ export const sidebarLinks = [
     ],
   },
 
-  // Customer specific - My Shipments
   {
-    title: "My Shipments",
-    href: "/customers/shipments",
-    icon: Package,
-    roles: [UserRole.USER],
+    title: "Product",
+    href: "/products",
+    icon: Package2,
+    roles: Object.values(UserRole), // Everyone
   },
 
   // ===== TRACKING =====

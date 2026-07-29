@@ -25,9 +25,18 @@ export async function POST(req: NextRequest) {
     }
 
     return await AuthService.register(validated.data);
-  } catch (err) {
+  } catch (err: any) {
+    console.error("REGISTER ERROR");
     console.error(err);
+    console.error(err?.stack);
 
-    return error("Internal Server Error", 500);
+    return Response.json(
+      {
+        success: false,
+        message: err.message,
+        stack: process.env.NODE_ENV === "development" ? err.stack : undefined,
+      },
+      { status: 500 }
+    );
   }
 }

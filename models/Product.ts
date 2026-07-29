@@ -1,130 +1,126 @@
-import mongoose, { Document, Model, Schema } from "mongoose";
+// models/Product.js
+import { Schema, models, model } from "mongoose";
 
-export enum ProductStatus {
-  DRAFT = "DRAFT",
-  READY = "READY",
-  ASSIGNED_TO_SHIPMENT = "ASSIGNED_TO_SHIPMENT",
-  SHIPPED = "SHIPPED",
-  DELIVERED = "DELIVERED",
-  CANCELLED = "CANCELLED",
-}
+const productSchema = new Schema({
+  // Core fields
+  name: { type: String, required: true },
+  sku: { type: String, unique: true },
+  description: String,
+  quantity: { type: Number, default: 1 },
+  unitPrice: { type: Number, required: true },
+  totalPrice: { type: Number, required: true },
 
-export interface IProduct extends Document {
-  organization: mongoose.Types.ObjectId;
+  // Relations
+  shipmentId: { type: Schema.Types.ObjectId, ref: 'Shipment' },
+  shipmentItemId: { type: Schema.Types.ObjectId, ref: 'ShipmentItem' },
+  containerId: { type: Schema.Types.ObjectId, ref: 'Container' },
+  orderId: { type: Schema.Types.ObjectId, ref: 'Order' },
 
-  name: string;
-  description?: string;
-
-  sku: string;
-
-  category?: string;
-
-  quantity: number;
-
-  unitPrice: number;
-
-  currency: string;
-
-  weight: number;
-
-  length?: number;
-
-  width?: number;
-
-  height?: number;
-
-  batchNumber: string;
-
-  status: ProductStatus;
-
-  createdBy: mongoose.Types.ObjectId;
-}
-
-const ProductSchema = new Schema<IProduct>(
-  {
-    organization: {
-      type: Schema.Types.ObjectId,
-      ref: "Organization",
-      required: true,
-      index: true,
-    },
-
-    name: {
-      type: String,
-      required: true,
-      trim: true,
-    },
-
-    description: String,
-
-    sku: {
-      type: String,
-      required: true,
-      unique: true,
-      uppercase: true,
-      trim: true,
-    },
-
-    category: {
-      type: Schema.Types.ObjectId,
-      ref: "Category",
-      required: true,
-    },
-
-    quantity: {
-      type: Number,
-      required: true,
-      min: 1,
-    },
-
-    unitPrice: {
-      type: Number,
-      required: true,
-      min: 0,
-    },
-
-    currency: {
-      type: String,
-      default: "USD",
-    },
-
-    weight: {
-      type: Number,
-      required: true,
-      min: 0,
-    },
-
-    length: Number,
-
-    width: Number,
-
-    height: Number,
-
-    batchNumber: {
-      type: String,
-      required: true,
-      index: true,
-    },
-
-    status: {
-      type: String,
-      enum: Object.values(ProductStatus),
-      default: ProductStatus.DRAFT,
-    },
-
-    createdBy: {
-      type: Schema.Types.ObjectId,
-      ref: "User",
-      required: true,
-    }
+  // Payment
+  paymentStatus: {
+  type: String,
+  enum: [
+    "PENDING",
+    "PAID",
+    "FAILED",
+    "REFUNDED",
+  ],
+  default: "PENDING",
+},
+  paymentDate: Date,
+  paymentClearedDate: Date,
+  paymentReference: String,
+  paymentMethod: {
+    type: String,
+    enum: ['credit_card', 'debit_card', 'bank_transfer', 'paypal', 'cash']
   },
-  {
-    timestamps: true,
-  }
-);
+  paymentAmount: Number,
 
-const Product: Model<IProduct> =
-  mongoose.models.Product ||
-  mongoose.model<IProduct>("Product", ProductSchema);
+  // Buyer info
+  buyerId: { type: Schema.Types.ObjectId, ref: 'User' },
+  buyerEmail: String,
+  buyerName: String,
+  shippingAddress: {
+    street: String,
+    city: String,
+    state: String,
+    country: String,
+    postalCode: String
+  },
 
+  // Tracking
+  trackingLocations: [{
+    location: { type: String, required: true },
+    status: { type: String, required: true },
+    timestamp: { type: Date, default: Date.now },
+    description: String,
+    coordinates: {
+      lat: Number,
+      lng: Number
+    },
+    updatedBy: { type: Schema.Types.ObjectId, ref: 'User' }
+  }],
+
+  // Current status
+  currentStatus: {
+    type: String,
+    enum: [
+      'order_placed',
+      'payment_pending',
+      'payment_cleared',
+      'in_transit',
+      'arrived_port',
+      'customs_clearance',
+      'out_for_delivery',
+      'delivered',
+      'cancelled'
+    ],
+    default: 'order_placed'
+  },
+
+  // Timestamps
+  orderedAt: { type: Date, default: Date.now },
+  expectedDelivery: Date,
+  deliveredAt: Date,
+  cancelledAt: Date,
+
+  // Metadata
+  notes: String,
+  tags: [String],
+
+  // Audit fields (matching your Shipment model)
+  isDeleted: { type: Boolean, default: false },
+  createdBy: { type: Schema.Types.ObjectId, ref: 'User' },
+  updatedBy: { type: Schema.Types.ObjectId, ref: 'User' },
+  deletedBy: { type: Schema.Types.ObjectId, ref: 'User' }
+}, {
+  timestamps: true
+});
+
+// Indexes
+productSchema.index({ sku: 1 });
+productSchema.index({ shipmentId: 1 });
+productSchema.index({ buyerId: 1 });
+productSchema.index({ currentStatus: 1 });
+productSchema.index({ paymentStatus: 1 });
+productSchema.index({ createdAt: -1 });
+
+// Virtuals
+productSchema.virtual('trackingCount').get(function () {
+  return this.trackingLocations?.length || 0;
+});
+
+productSchema.virtual('isDelivered').get(function () {
+  return this.currentStatus === 'delivered';
+});
+
+productSchema.virtual('isPaid').get(function () {
+  return this.paymentStatus === 'cleared';
+});
+
+// Ensure virtuals are included
+productSchema.set('toJSON', { virtuals: true });
+productSchema.set('toObject', { virtuals: true });
+
+const Product = models.Product || model('Product', productSchema);
 export default Product;

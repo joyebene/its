@@ -2,7 +2,9 @@ import Link from "next/link";
 import Button from "@/components/shared/Button";
 import ShipmentTimeline from "@/components/shipment/ShipmentTimeline";
 import ShipmentInfo from "@/components/shipment/ShipmentInfo";
-import { IShipment } from "@/lib/types";
+
+import { connectDB } from "@/lib/db";
+import Shipment from "@/models/Shipment";
 
 interface Props {
   params: Promise<{
@@ -15,11 +17,19 @@ export default async function ShipmentDetailsPage({
 }: Props) {
   const { id } = await params;
 
-  const res = await fetch(`/api/shipments/${id}`);
+  await connectDB();
 
-  const result = await res.json();
+  const shipment = await Shipment.findById(id)
+    .populate("product")
+    .lean();
 
-  const shipment: IShipment = result.data;
+  if (!shipment) {
+    return (
+      <div className="p-10 text-center">
+        Shipment not found.
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -46,6 +56,7 @@ export default async function ShipmentDetailsPage({
           </h2>
 
           <div className="grid gap-6 md:grid-cols-2">
+
             <ShipmentInfo
               label="Shipment Number"
               value={shipment.shipmentNumber}
@@ -58,27 +69,27 @@ export default async function ShipmentDetailsPage({
 
             <ShipmentInfo
               label="Carrier"
-              value={shipment.carrier}
+              value={shipment.carrier || "-"}
             />
 
             <ShipmentInfo
-              label="Container"
-              value={shipment.containerNumber}
-            />
-
-            <ShipmentInfo
-              label="Method"
+              label="Shipping Method"
               value={shipment.shippingMethod}
             />
 
             <ShipmentInfo
+              label="Status"
+              value={shipment.status}
+            />
+
+            <ShipmentInfo
               label="Origin"
-              value={shipment.originWarehouse}
+              value={`${shipment.origin.city}, ${shipment.origin.state}, ${shipment.origin.country}`}
             />
 
             <ShipmentInfo
               label="Destination"
-              value={shipment.destinationWarehouse}
+              value={`${shipment.destination.city}, ${shipment.destination.state}, ${shipment.destination.country}`}
             />
 
             <ShipmentInfo

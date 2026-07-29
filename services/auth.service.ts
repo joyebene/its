@@ -105,6 +105,7 @@ export class AuthService {
             email: email.toLowerCase(),
             password: hashedPassword,
             phone,
+            role: data.role,
         });
 
         await NotificationService.create(
@@ -130,56 +131,6 @@ export class AuthService {
 
         );
 
-
-        return this.generateAuthResponse(user, 201);
-    }
-
-    static async registerByInvitation(
-        data: InvitationRegisterInput
-    ) {
-
-        const invitation =
-            await Invitation.findOne({
-                token: data.token,
-                accepted: false,
-            });
-
-        if (!invitation) {
-            throw new Error(
-                "Invalid or expired invitation."
-            );
-        }
-
-        const existingUser =
-            await User.findOne({
-                email: invitation.email,
-            });
-
-        if (existingUser) {
-            throw new Error(
-                "User already exists."
-            );
-        }
-
-        const hashedPassword =
-            await hashPassword(data.password);
-
-        const user = await User.create({
-            firstName: data.firstName,
-            lastName: data.lastName,
-            email: invitation.email,
-            phone: data.phone,
-            password: hashedPassword,
-
-            organization:
-                invitation.organization,
-
-            role: invitation.role,
-        });
-
-        invitation.accepted = true;
-
-        await invitation.save();
 
         return this.generateAuthResponse(user, 201);
     }

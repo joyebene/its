@@ -125,13 +125,17 @@ export default function TrackingPage() {
             />
           </div>
 
-          <Button
+          <div className="w-fit">
+              <Button
             onClick={handleTrack}
             loading={loading}
             className="px-6"
           >
             Track Shipment
           </Button>
+          </div>
+
+        
 
         </div>
 

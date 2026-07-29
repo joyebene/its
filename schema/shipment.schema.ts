@@ -4,18 +4,20 @@ import {
     ShippingMethod,
 } from "@/models/Shipment";
 
-const shipmentItemSchema = z.object({
-    product: z.string(),
-    quantity: z.number().int().positive(),
-});
-
-
 export const createShipmentSchema = z.object({
-    order: z.string(),
+    product: z.string().min(1, "Product is required"),
 
-    originWarehouse: z.string(),
+    origin: z.object({
+        city: z.string().min(2, "City is required"),
+        state: z.string().min(2, "State is required"),
+        country: z.string().min(2, "Country is required"),
+    }),
 
-    destinationWarehouse: z.string(),
+    destination: z.object({
+        city: z.string().min(2, "City is required"),
+        state: z.string().min(2, "State is required"),
+        country: z.string().min(2, "Country is required"),
+    }),
 
     shippingMethod: z.nativeEnum(ShippingMethod),
 
@@ -26,15 +28,14 @@ export const createShipmentSchema = z.object({
     estimatedDeparture: z.coerce.date().optional(),
 
     estimatedArrival: z.coerce.date().optional(),
-
-    items: z.array(shipmentItemSchema).min(1),
 });
 
-export const updateShipmentSchema = createShipmentSchema.partial();
+export const updateShipmentSchema =
+    createShipmentSchema.partial();
 
 export const updateShipmentStatusSchema = z.object({
     status: z.nativeEnum(ShipmentStatus),
-    
+
     location: z.string().min(2),
 
     remarks: z.string().optional(),
@@ -44,11 +45,14 @@ export const updateShipmentStatusSchema = z.object({
     longitude: z.number().optional(),
 });
 
-export type CreateShipmentInput =
-    z.infer<typeof createShipmentSchema>;
+export type CreateShipmentInput = z.infer<
+    typeof createShipmentSchema
+>;
 
-export type UpdateShipmentInput =
-    z.infer<typeof updateShipmentSchema>;
+export type UpdateShipmentInput = z.infer<
+    typeof updateShipmentSchema
+>;
 
-export type UpdateShipmentStatusInput =
-    z.infer<typeof updateShipmentStatusSchema>;
+export type UpdateShipmentStatusInput = z.infer<
+    typeof updateShipmentStatusSchema
+>;

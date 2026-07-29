@@ -25,26 +25,30 @@ export enum ShippingMethod {
 export interface IShipment extends Document {
   shipmentNumber: string;
 
-  order: mongoose.Types.ObjectId;
+  product: mongoose.Types.ObjectId;
 
-  originWarehouse: mongoose.Types.ObjectId;
+  origin: {
+    city: string;
+    state: string;
+    country: string;
+  };
 
-  destinationWarehouse: mongoose.Types.ObjectId;
+  destination: {
+    city: string;
+    state: string;
+    country: string;
+  };
 
   shippingMethod: ShippingMethod;
 
   carrier?: string;
 
-  containerNumber?: string;
-
   trackingNumber: string;
 
   estimatedDeparture?: Date;
-
   estimatedArrival?: Date;
 
   actualDeparture?: Date;
-
   actualArrival?: Date;
 
   status: ShipmentStatus;
@@ -60,26 +64,42 @@ const ShipmentSchema = new Schema<IShipment>(
       type: String,
       required: true,
       unique: true,
-      index: true,
     },
 
-    order: {
+    product: {
       type: Schema.Types.ObjectId,
-      ref: "Order",
-      required: true,
-      index: true,
-    },
-
-    originWarehouse: {
-      type: Schema.Types.ObjectId,
-      ref: "Warehouse",
+      ref: "Product",
       required: true,
     },
 
-    destinationWarehouse: {
-      type: Schema.Types.ObjectId,
-      ref: "Warehouse",
-      required: true,
+    origin: {
+      city: {
+        type: String,
+        required: true,
+      },
+      state: {
+        type: String,
+        required: true,
+      },
+      country: {
+        type: String,
+        required: true,
+      },
+    },
+
+    destination: {
+      city: {
+        type: String,
+        required: true,
+      },
+      state: {
+        type: String,
+        required: true,
+      },
+      country: {
+        type: String,
+        required: true,
+      },
     },
 
     shippingMethod: {
@@ -90,12 +110,9 @@ const ShipmentSchema = new Schema<IShipment>(
 
     carrier: String,
 
-    containerNumber: String,
-
     trackingNumber: {
       type: String,
       unique: true,
-      index: true,
     },
 
     estimatedDeparture: Date,
@@ -122,29 +139,16 @@ const ShipmentSchema = new Schema<IShipment>(
       type: Boolean,
       default: false,
     },
-
   },
   {
     timestamps: true,
   }
 );
 
-ShipmentSchema.index({
-  shipmentNumber: 1,
-});
-
-ShipmentSchema.index({
-  status: 1,
-});
-
-ShipmentSchema.index({
-  trackingNumber: 1,
-});
-
-ShipmentSchema.index({
-  order: 1,
-});
-
+ShipmentSchema.index({ shipmentNumber: 1 });
+ShipmentSchema.index({ product: 1 });
+ShipmentSchema.index({ status: 1 });
+ShipmentSchema.index({ trackingNumber: 1 });
 
 const Shipment: Model<IShipment> =
   mongoose.models.Shipment ||

@@ -79,6 +79,8 @@ export async function PATCH(
       "Shipment updated."
     );
   } catch (err: any) {
+    console.log(err);
+    
     return error(err.message, 400);
   }
 }

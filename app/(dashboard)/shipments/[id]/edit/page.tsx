@@ -1,86 +1,202 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { useParams, useRouter } from "next/navigation";
+
 import PageHeader from "@/components/shared/PageHeader";
 import Card from "@/components/shared/Card";
 import Input from "@/components/shared/Input";
 import Button from "@/components/shared/Button";
 
+import {
+  ShippingMethod,
+  ShipmentStatus,
+} from "@/lib/types";
+
 export default function EditShipmentPage() {
   const router = useRouter();
+  const { id } = useParams();
+
+  const [loading, setLoading] = useState(false);
 
   const [formData, setFormData] = useState({
-    shipmentNumber: "SHP-1001",
-    trackingNumber: "TRK-1001",
-    carrier: "Maersk",
-    shippingMethod: "SEA",
-    status: "IN_TRANSIT",
-    estimatedArrival: "2026-08-10",
-    containerNumber: "MSKU1234567",
+    product: "",
+
+    origin: {
+      city: "",
+      state: "",
+      country: "",
+    },
+
+    destination: {
+      city: "",
+      state: "",
+      country: "",
+    },
+
+    carrier: "",
+
+    shippingMethod: ShippingMethod.SEA,
+
+    estimatedDeparture: "",
+
+    estimatedArrival: "",
+
+    status: ShipmentStatus.CREATED,
   });
+
+  useEffect(() => {
+    if (id) {
+      loadShipment();
+    }
+  }, [id]);
+
+  async function loadShipment() {
+    try {
+      const token = localStorage.getItem("accessToken");
+
+      const res = await fetch(`/api/shipments/${id}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const result = await res.json();
+
+      const shipment = result.data;
+
+      setFormData({
+        product:
+          typeof shipment.product === "object"
+            ? shipment.product._id
+            : shipment.product ?? "",
+
+        origin: shipment.origin,
+
+        destination: shipment.destination,
+
+        carrier: shipment.carrier ?? "",
+
+        shippingMethod: shipment.shippingMethod,
+
+        estimatedDeparture:
+          shipment.estimatedDeparture?.slice(0, 10) ?? "",
+
+        estimatedArrival:
+          shipment.estimatedArrival?.slice(0, 10) ?? "",
+
+        status: shipment.status,
+      });
+    } catch (err) {
+      console.error(err);
+    }
+  }
 
   const handleChange = (
     e: React.ChangeEvent<
       HTMLInputElement | HTMLSelectElement
     >
   ) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
+    const { name, value } = e.target;
+
+    if (name.startsWith("origin.")) {
+      const key = name.split(".")[1];
+
+      return setFormData((prev) => ({
+        ...prev,
+        origin: {
+          ...prev.origin,
+          [key]: value,
+        },
+      }));
+    }
+
+    if (name.startsWith("destination.")) {
+      const key = name.split(".")[1];
+
+      return setFormData((prev) => ({
+        ...prev,
+        destination: {
+          ...prev.destination,
+          [key]: value,
+        },
+      }));
+    }
+
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
   };
 
-  const handleSubmit = async (
-    e: React.FormEvent
-  ) => {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
 
-    console.log(formData);
+    setLoading(true);
 
-    router.push("/shipments");
-  };
+    try {
+      const token = localStorage.getItem("accessToken");
+
+      // Remove status before updating shipment
+      const { status, ...shipmentData } = formData;
+
+      const res = await fetch(`/api/shipments/${id}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(shipmentData),
+      });
+
+      if (!res.ok) {
+        console.log(await res.json());
+        return;
+      }
+
+      // Update shipment status separately
+      const statusRes = await fetch(
+        `/api/shipments/${id}/status`,
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            status: formData.status,
+            location: `${formData.destination.city}, ${formData.destination.country}`,
+            remarks: "Shipment updated from dashboard",
+          }),
+        }
+      );
+
+      console.log(await statusRes.json());
+
+      if (statusRes.ok) {
+        router.push("/shipments");
+      }
+    } finally {
+      setLoading(false);
+    }
+  }
 
   return (
     <div className="space-y-6">
-
       <PageHeader
         title="Edit Shipment"
         description="Update shipment information."
       />
 
       <Card>
-
         <form
           onSubmit={handleSubmit}
           className="grid gap-6 md:grid-cols-2"
         >
-
-          <Input
-            label="Shipment Number"
-            name="shipmentNumber"
-            value={formData.shipmentNumber}
-            onChange={handleChange}
-          />
-
-          <Input
-            label="Tracking Number"
-            name="trackingNumber"
-            value={formData.trackingNumber}
-            onChange={handleChange}
-          />
-
           <Input
             label="Carrier"
             name="carrier"
             value={formData.carrier}
-            onChange={handleChange}
-          />
-
-          <Input
-            label="Container Number"
-            name="containerNumber"
-            value={formData.containerNumber}
             onChange={handleChange}
           />
 
@@ -95,11 +211,76 @@ export default function EditShipmentPage() {
               onChange={handleChange}
               className="w-full rounded-xl border px-4 py-3"
             >
-              <option value="AIR">Air</option>
-              <option value="SEA">Sea</option>
-              <option value="LAND">Land</option>
+              {Object.values(ShippingMethod).map(
+                (method) => (
+                  <option
+                    key={method}
+                    value={method}
+                  >
+                    {method}
+                  </option>
+                )
+              )}
             </select>
           </div>
+
+          <Input
+            label="Origin City"
+            name="origin.city"
+            value={formData.origin.city}
+            onChange={handleChange}
+          />
+
+          <Input
+            label="Origin State"
+            name="origin.state"
+            value={formData.origin.state}
+            onChange={handleChange}
+          />
+
+          <Input
+            label="Origin Country"
+            name="origin.country"
+            value={formData.origin.country}
+            onChange={handleChange}
+          />
+
+          <Input
+            label="Destination City"
+            name="destination.city"
+            value={formData.destination.city}
+            onChange={handleChange}
+          />
+
+          <Input
+            label="Destination State"
+            name="destination.state"
+            value={formData.destination.state}
+            onChange={handleChange}
+          />
+
+          <Input
+            label="Destination Country"
+            name="destination.country"
+            value={formData.destination.country}
+            onChange={handleChange}
+          />
+
+          <Input
+            type="date"
+            label="Estimated Departure"
+            name="estimatedDeparture"
+            value={formData.estimatedDeparture}
+            onChange={handleChange}
+          />
+
+          <Input
+            type="date"
+            label="Estimated Arrival"
+            name="estimatedArrival"
+            value={formData.estimatedArrival}
+            onChange={handleChange}
+          />
 
           <div>
             <label className="mb-2 block text-sm font-medium">
@@ -112,56 +293,20 @@ export default function EditShipmentPage() {
               onChange={handleChange}
               className="w-full rounded-xl border px-4 py-3"
             >
-              <option value="CREATED">Created</option>
-              <option value="READY_FOR_PICKUP">
-                Ready for Pickup
-              </option>
-              <option value="COLLECTED">
-                Collected
-              </option>
-              <option value="WAREHOUSE_RECEIVED">
-                Warehouse Received
-              </option>
-              <option value="CONSOLIDATED">
-                Consolidated
-              </option>
-              <option value="EXPORT_CLEARANCE">
-                Export Clearance
-              </option>
-              <option value="IN_TRANSIT">
-                In Transit
-              </option>
-              <option value="ARRIVED_DESTINATION">
-                Arrived Destination
-              </option>
-              <option value="CUSTOMS_CLEARANCE">
-                Customs Clearance
-              </option>
-              <option value="IMPORT_WAREHOUSE">
-                Import Warehouse
-              </option>
-              <option value="OUT_FOR_DELIVERY">
-                Out for Delivery
-              </option>
-              <option value="DELIVERED">
-                Delivered
-              </option>
-              <option value="CANCELLED">
-                Cancelled
-              </option>
+              {Object.values(ShipmentStatus).map(
+                (status) => (
+                  <option
+                    key={status}
+                    value={status}
+                  >
+                    {status.replaceAll("_", " ")}
+                  </option>
+                )
+              )}
             </select>
           </div>
 
-          <Input
-            label="Estimated Arrival"
-            type="date"
-            name="estimatedArrival"
-            value={formData.estimatedArrival}
-            onChange={handleChange}
-          />
-
-          <div className="md:col-span-2 flex justify-end gap-3">
-
+          <div className="flex justify-end gap-3 md:col-span-2">
             <Button
               type="button"
               variant="secondary"
@@ -172,16 +317,15 @@ export default function EditShipmentPage() {
               Cancel
             </Button>
 
-            <Button type="submit">
+            <Button
+              type="submit"
+              loading={loading}
+            >
               Update Shipment
             </Button>
-
           </div>
-
         </form>
-
       </Card>
-
     </div>
   );
 }

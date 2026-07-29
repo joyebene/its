@@ -69,6 +69,7 @@ export default function ShipmentsPage() {
       });
 
       const result = await res.json();
+      
 
       setShipments(result.data || []);
       setLoading(false);

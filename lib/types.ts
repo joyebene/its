@@ -14,7 +14,7 @@ export enum ShippingMethod {
   LAND = "LAND",
 }
 
-enum ShipmentStatus {
+export enum ShipmentStatus {
   CREATED = "CREATED",
   READY_FOR_PICKUP = "READY_FOR_PICKUP",
   COLLECTED = "COLLECTED",
@@ -35,33 +35,43 @@ export interface IShipment {
 
   shipmentNumber: string;
 
-  order: string;
+  product: string;
 
-  originWarehouse: string;
+  origin: {
+    city: string;
+    state: string;
+    country: string;
+  };
 
-  destinationWarehouse: string;
+  destination: {
+    city: string;
+    state: string;
+    country: string;
+  };
 
   shippingMethod: ShippingMethod;
 
   carrier?: string;
 
-  containerNumber?: string;
-
   trackingNumber: string;
 
-  estimatedDeparture?: Date;
+  estimatedDeparture?: string;
 
-  estimatedArrival?: Date;
+  estimatedArrival?: string;
 
-  actualDeparture?: Date;
+  actualDeparture?: string;
 
-  actualArrival?: Date;
+  actualArrival?: string;
 
   status: ShipmentStatus;
 
   createdBy: string;
 
   isDeleted: boolean;
+
+  createdAt: string;
+
+  updatedAt: string;
 }
 
 export interface IContainer {
