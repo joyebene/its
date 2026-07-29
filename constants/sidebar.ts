@@ -66,19 +66,6 @@ export const sidebarLinks = [
     ],
   },
 
-  // ===== CONTAINERS =====
-  {
-    title: "Containers",
-    href: "/containers",
-    icon: Container,
-    roles: [
-      UserRole.SUPER_ADMIN,
-      UserRole.ADMIN,
-      UserRole.WAREHOUSE,
-      UserRole.LOGISTICS,
-    ],
-  },
-
   // ===== CUSTOMS =====
   {
     title: "Customs Clearance",

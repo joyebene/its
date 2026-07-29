@@ -51,7 +51,7 @@ export default function TrackingPage() {
   }
   function change(
     e: React.ChangeEvent<
-      HTMLInputElement | HTMLTextAreaElement
+      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
     >
   ) {
     setForm({

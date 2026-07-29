@@ -59,7 +59,7 @@ export async function GET(req: NextRequest) {
     const user = await auth(req);
 
     const shipments =
-      await ShipmentService.findAll(user);
+      await ShipmentService.findAll();
 
     return success(shipments);
   } catch (err: any) {

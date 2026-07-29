@@ -280,7 +280,7 @@ export class ProductService {
 
         await this.notifyProductUsers(
             "Payment Cleared (Manual)",
-            `Payment for ${product.name} (${product.sku}) has been manually cleared by ${user.name}.`,
+            `Payment for ${product.name} (${product.sku}) has been manually cleared by ${user.firstName} ${user.lastName}.`,
             NotificationType.SUCCESS,
             product._id
         );

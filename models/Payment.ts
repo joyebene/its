@@ -1,3 +1,4 @@
+import { Types } from "mongoose";
 import { Schema, models, model, Document, Model } from "mongoose";
 
 // ============ ENUMS ============
@@ -39,8 +40,7 @@ export interface IBillingAddress {
 
 export interface IPayment extends Document {
     // Relations
-    productId: Schema.Types.ObjectId;
-    orderId?: Schema.Types.ObjectId;
+    productId: Types.ObjectId;
     shipmentId?: Schema.Types.ObjectId;
     userId: Schema.Types.ObjectId;
     
@@ -125,10 +125,6 @@ const paymentSchema = new Schema<IPayment, IPaymentModel>({
         type: Schema.Types.ObjectId, 
         ref: 'Product', 
         required: true 
-    },
-    orderId: { 
-        type: Schema.Types.ObjectId, 
-        ref: 'Order' 
     },
     shipmentId: { 
         type: Schema.Types.ObjectId, 

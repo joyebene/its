@@ -115,7 +115,7 @@ productSchema.virtual('isDelivered').get(function () {
 });
 
 productSchema.virtual('isPaid').get(function () {
-  return this.paymentStatus === 'cleared';
+  return this.paymentStatus === 'PAID';
 });
 
 // Ensure virtuals are included
