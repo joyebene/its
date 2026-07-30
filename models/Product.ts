@@ -68,6 +68,7 @@ const productSchema = new Schema({
   currentStatus: {
     type: String,
     enum: [
+      'pending',
       'order_placed',
       'payment_pending',
       'payment_cleared',

@@ -1,4 +1,5 @@
 import Product from "@/models/Product";
+import "@/models/Shipment";
 import User from "@/models/User";
 import { IUser, UserRole } from "@/models/User";
 import { NotificationType } from "@/models/Notification";
