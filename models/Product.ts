@@ -18,15 +18,18 @@ const productSchema = new Schema({
 
   // Payment
   paymentStatus: {
-  type: String,
-  enum: [
-    "PENDING",
-    "PAID",
-    "FAILED",
-    "REFUNDED",
-  ],
-  default: "PENDING",
-},
+    type: String,
+    enum: [
+      "pending",
+      "processing",
+      "completed",
+      "failed",
+      "refunded",
+      "partially_refunded",
+      "cancelled",
+    ],
+    default: "PENDING",
+  },
   paymentDate: Date,
   paymentClearedDate: Date,
   paymentReference: String,
@@ -115,7 +118,7 @@ productSchema.virtual('isDelivered').get(function () {
 });
 
 productSchema.virtual('isPaid').get(function () {
-  return this.paymentStatus === 'PAID';
+  return this.paymentStatus === 'completed';
 });
 
 // Ensure virtuals are included

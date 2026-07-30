@@ -13,6 +13,7 @@ import {
     UpdateProductStatusInput,
     ProductFiltersInput
 } from "@/schema/product.schema";
+import { PaymentStatus } from "@/models/Payment";
 
 export class ProductService {
 
@@ -204,7 +205,7 @@ export class ProductService {
         const gatewayResponse = await this.mockPaymentGateway(data);
 
         if (gatewayResponse.success) {
-            product.paymentStatus = 'cleared';
+            product.paymentStatus = 'completed';
             product.paymentDate = new Date();
             product.paymentClearedDate = new Date();
             product.paymentReference = data.reference || gatewayResponse.transactionId;
@@ -231,7 +232,7 @@ export class ProductService {
             return {
                 product,
                 payment: {
-                    status: 'cleared',
+                    status: 'completed',
                     transactionId: gatewayResponse.transactionId,
                     clearedAt: product.paymentClearedDate
                 }
@@ -266,11 +267,11 @@ export class ProductService {
             throw new Error("Product not found.");
         }
 
-        if (product.paymentStatus === 'cleared') {
+        if (product.paymentStatus === 'completed') {
             throw new Error("Payment already cleared.");
         }
 
-        product.paymentStatus = 'cleared';
+        product.paymentStatus = PaymentStatus.COMPLETED;
         product.paymentClearedDate = new Date();
         product.paymentReference = data.transactionId;
         product.currentStatus = 'payment_cleared';
