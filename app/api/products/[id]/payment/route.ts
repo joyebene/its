@@ -116,7 +116,7 @@ export async function PUT(
         await Product.findByIdAndUpdate(
             id,
             {
-                paymentStatus: "PAID"
+                paymentStatus: "completed"
             }
         );
 
