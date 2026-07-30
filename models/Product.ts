@@ -14,7 +14,6 @@ const productSchema = new Schema({
   shipmentId: { type: Schema.Types.ObjectId, ref: 'Shipment' },
   shipmentItemId: { type: Schema.Types.ObjectId, ref: 'ShipmentItem' },
   containerId: { type: Schema.Types.ObjectId, ref: 'Container' },
-  orderId: { type: Schema.Types.ObjectId, ref: 'Order' },
 
   // Payment
   paymentStatus: {
