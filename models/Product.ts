@@ -28,7 +28,7 @@ const productSchema = new Schema({
       "partially_refunded",
       "cancelled",
     ],
-    default: "PENDING",
+    default: "pending",
   },
   paymentDate: Date,
   paymentClearedDate: Date,
