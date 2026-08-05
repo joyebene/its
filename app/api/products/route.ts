@@ -63,6 +63,7 @@ export async function GET(req: NextRequest) {
             search: searchParams.get("search") ?? undefined,
             fromDate: searchParams.get("fromDate") ?? undefined,
             toDate: searchParams.get("toDate") ?? undefined,
+            hasShipment: searchParams.get("hasShipment") ?? undefined,
         });
 
         if (!parsed.success) {

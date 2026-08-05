@@ -97,6 +97,13 @@ export class ProductService {
         const query: any = { isDeleted: false };
 
         if (filters) {
+            if (filters?.hasShipment === "true") {
+                query.shipmentId = { $exists: true, $ne: null };
+            }
+
+            if (filters?.hasShipment === "false") {
+                query.shipmentId = null;
+            }
             if (filters.status) query.currentStatus = filters.status;
             if (filters.paymentStatus) query.paymentStatus = filters.paymentStatus;
             if (filters.buyerId) query.buyerId = filters.buyerId;
@@ -120,7 +127,6 @@ export class ProductService {
         return Product.find(query)
             .populate('shipmentId')
             .populate('containerId')
-            .populate('orderId')
             .populate('buyerId', 'name email')
             .populate('createdBy', 'name email')
             .sort({ createdAt: -1 });
@@ -134,7 +140,6 @@ export class ProductService {
         })
             .populate('shipmentId')
             .populate('containerId')
-            .populate('orderId')
             .populate('buyerId', 'name email')
             .populate('createdBy', 'name email')
             .populate('trackingLocations.updatedBy', 'name email');
@@ -594,4 +599,126 @@ export class ProductService {
             cancelled
         };
     }
+
+
+ static async updateCurrentLocation(
+  id: string,
+  user: IUser,
+  data: {
+    latitude: number;
+    longitude: number;
+    address?: string;
+    city?: string;
+    state?: string;
+    country?: string;
+  }
+) {
+  const product = await Product.findOne({
+    _id: id,
+    isDeleted: false,
+  });
+
+  if (!product) {
+    throw new Error("Product not found.");
+  }
+
+  let address = data.address || "";
+  let city = data.city || "";
+  let state = data.state || "";
+  let country = data.country || "";
+
+  // Only reverse geocode if address details are missing
+  if (!address || !city || !state || !country) {
+    try {
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${data.latitude}&lon=${data.longitude}`,
+        {
+          headers: {
+            "User-Agent": "ImportationTrackingSystem/1.0",
+          },
+        }
+      );
+
+      const geo = await response.json();
+
+      address = geo.display_name || address;
+
+      city =
+        geo.address?.city ||
+        geo.address?.town ||
+        geo.address?.village ||
+        city;
+
+      state = geo.address?.state || state;
+      country = geo.address?.country || country;
+    } catch (err) {
+      console.error("Reverse geocoding failed:", err);
+    }
+  }
+
+  product.currentLocation = {
+    latitude: data.latitude,
+    longitude: data.longitude,
+    address,
+    city,
+    state,
+    country,
+    updatedAt: new Date(),
+    updatedBy: user._id,
+  };
+
+  product.updatedBy = user._id;
+
+  if (!product.trackingLocations) {
+    product.trackingLocations = [];
+  }
+
+  product.trackingLocations.push({
+    location: address || `${data.latitude}, ${data.longitude}`,
+    status: product.currentStatus,
+    timestamp: new Date(),
+    description: "Location updated",
+    coordinates: {
+      lat: data.latitude,
+      lng: data.longitude,
+    },
+    updatedBy: user._id,
+  });
+
+  await product.save();
+
+  return {
+    message: "Current location updated successfully.",
+    currentLocation: product.currentLocation,
+    trackingLocation:
+      product.trackingLocations[
+        product.trackingLocations.length - 1
+      ],
+  };
+}
+
+ static async getCurrentLocation(id: string) {
+    const product = await Product.findOne({
+        _id: id,
+        isDeleted: false,
+    })
+        .select("currentLocation")
+        .populate("currentLocation.updatedBy", "firstName lastName email");
+
+    if (!product) {
+        throw new Error("Product not found.");
+    }
+
+    const location = product.currentLocation;
+
+    if (
+        !location ||
+        location.latitude == null ||
+        location.longitude == null
+    ) {
+        return null;
+    }
+
+    return location;
+}
 }

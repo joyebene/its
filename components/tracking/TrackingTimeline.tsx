@@ -1,51 +1,57 @@
 import Card from "@/components/shared/Card";
 
-const timeline = [
-  "Created",
-  "Warehouse Received",
-  "Consolidated",
-  "Export Clearance",
-  "In Transit",
-  "Arrived Destination",
-  "Customs Clearance",
-  "Import Warehouse",
-  "Out For Delivery",
-  "Delivered",
-];
-
-interface TrackingTimelineProps {
-  timeline: any[];
+interface TrackingLocation {
+  location: string;
+  status: string;
+  timestamp: string;
+  description?: string;
 }
 
+interface TrackingTimelineProps {
+  timeline: TrackingLocation[];
+}
 
-export default function TrackingTimeline({timeline}: TrackingTimelineProps) {
+export default function TrackingTimeline({
+  timeline,
+}: TrackingTimelineProps) {
   return (
-    <Card title="Shipment Timeline">
+    <Card title="Product Tracking History">
+      {timeline.length === 0 ? (
+        <p className="text-sm text-slate-500">
+          No tracking updates available.
+        </p>
+      ) : (
+        <div className="space-y-5">
+          {timeline.map((item, index) => (
+            <div
+              key={index}
+              className="flex items-start gap-4"
+            >
+              <div className="mt-1 h-4 w-4 rounded-full bg-blue-600" />
 
-      <div className="space-y-5">
+              <div className="flex-1">
+                <p className="font-medium">
+                  {item.status.replaceAll("_", " ")}
+                </p>
 
-        {timeline.map((item, index) => (
-          <div
-            key={item}
-            className="flex items-start gap-4"
-          >
-            <div className="mt-1 h-4 w-4 rounded-full bg-blue-600" />
+                <p className="text-sm text-slate-500">
+                  {item.location}
+                </p>
 
-            <div>
-              <p className="font-medium">
-                {item}
-              </p>
+                {item.description && (
+                  <p className="mt-1 text-sm text-slate-600">
+                    {item.description}
+                  </p>
+                )}
 
-              <p className="text-sm text-slate-500">
-                Step {index + 1}
-              </p>
+                <p className="mt-1 text-xs text-slate-400">
+                  {new Date(item.timestamp).toLocaleString()}
+                </p>
+              </div>
             </div>
-
-          </div>
-        ))}
-
-      </div>
-
+          ))}
+        </div>
+      )}
     </Card>
   );
 }

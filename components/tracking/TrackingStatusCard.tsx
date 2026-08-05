@@ -2,47 +2,62 @@ import Card from "@/components/shared/Card";
 import Badge from "@/components/shared/Badge";
 
 interface Props {
-  shipment: {
-    shipmentNumber: string;
-    trackingNumber: string;
-    status: string;
-    carrier: string;
-    shippingMethod: string;
-    estimatedArrival: string;
-  };
+  product: any;
 }
 
 export default function TrackingStatusCard({
-  shipment,
+  product,
 }: Props) {
   return (
-    <Card title="Shipment Information">
-
-      <div className="space-y-4">
-
+    <Card title="Product Information">
+      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
         <Info
-          label="Shipment"
-          value={shipment.shipmentNumber}
+          label="Product Name"
+          value={product.name}
         />
 
         <Info
-          label="Tracking"
-          value={shipment.trackingNumber}
+          label="SKU"
+          value={product.sku}
         />
 
         <Info
-          label="Carrier"
-          value={shipment.carrier}
+          label="Quantity"
+          value={String(product.quantity)}
         />
 
         <Info
-          label="Method"
-          value={shipment.shippingMethod}
+          label="Unit Price"
+          value={`₦${product.unitPrice?.toLocaleString()}`}
         />
 
         <Info
-          label="ETA"
-          value={shipment.estimatedArrival}
+          label="Total Price"
+          value={`₦${product.totalPrice?.toLocaleString()}`}
+        />
+
+        <Info
+          label="Buyer"
+          value={product.buyerName || "-"}
+        />
+
+        <Info
+          label="Shipment Number"
+          value={product.shipmentId?.shipmentNumber || "-"}
+        />
+
+        <Info
+          label="Tracking Number"
+          value={product.shipmentId?.trackingNumber || "-"}
+        />
+
+        <Info
+          label="Current Location"
+          value={
+            product.currentLocation?.address ||
+            product.currentLocation?.city ||
+            "Unknown"
+          }
         />
 
         <div>
@@ -51,13 +66,34 @@ export default function TrackingStatusCard({
           </p>
 
           <Badge>
-            {shipment.status}
+            {product.currentStatus
+              ?.replaceAll("_", " ")
+              .toUpperCase()}
           </Badge>
-
         </div>
 
-      </div>
+        <Info
+          label="Destination"
+          value={[
+            product.shippingAddress?.city,
+            product.shippingAddress?.state,
+            product.shippingAddress?.country,
+          ]
+            .filter(Boolean)
+            .join(", ") || "-"}
+        />
 
+        <Info
+          label="Last Updated"
+          value={
+            product.currentLocation?.updatedAt
+              ? new Date(
+                  product.currentLocation.updatedAt
+                ).toLocaleString()
+              : "-"
+          }
+        />
+      </div>
     </Card>
   );
 }
@@ -67,7 +103,7 @@ function Info({
   value,
 }: {
   label: string;
-  value: string;
+  value?: string;
 }) {
   return (
     <div>
@@ -75,8 +111,8 @@ function Info({
         {label}
       </p>
 
-      <p className="font-medium">
-        {value}
+      <p className="mt-1 font-medium wrap-break-words">
+        {value || "-"}
       </p>
     </div>
   );

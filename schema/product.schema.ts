@@ -59,22 +59,22 @@ export const createProductSchema = z.object({
     quantity: z.number().int().positive().default(1),
     unitPrice: z.number().positive("Unit price must be positive"),
     totalPrice: z.number().positive("Total price must be positive"),
-    
+
     // Relations
     shipmentId: z.string().optional(),
     shipmentItemId: z.string().optional(),
     containerId: z.string().optional(),
     orderId: z.string().optional(),
-    
+
     // Buyer info
     buyerId: z.string().optional(),
     buyerEmail: z.string().email("Invalid email format").optional(),
     buyerName: z.string().optional(),
     shippingAddress: shippingAddressSchema.optional(),
-    
+
     // Expected delivery
     expectedDelivery: z.coerce.date().optional(),
-    
+
     // Metadata
     notes: z.string().optional(),
     tags: z.array(z.string()).optional()
@@ -134,7 +134,10 @@ export const productFiltersSchema = z.object({
     shipmentId: z.string().optional(),
     search: z.string().optional(),
     fromDate: z.coerce.date().optional(),
-    toDate: z.coerce.date().optional()
+    toDate: z.coerce.date().optional(),
+    hasShipment: z
+        .enum(["true", "false"])
+        .optional(),
 });
 
 // Export Types

@@ -81,6 +81,20 @@ const productSchema = new Schema({
     default: 'order_placed'
   },
 
+  currentLocation: {
+    latitude: Number,
+    longitude: Number,
+    address: String,
+    city: String,
+    state: String,
+    country: String,
+    updatedAt: Date,
+    updatedBy: {
+      type: Schema.Types.ObjectId,
+      ref: "User"
+    }
+  },
+
   // Timestamps
   orderedAt: { type: Date, default: Date.now },
   expectedDelivery: Date,

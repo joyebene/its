@@ -4,7 +4,6 @@ export { default as Warehouse } from "./Warehouse";
 export { default as Category } from "./Category";
 export { default as Product } from "./Product";
 export { default as ProductImage } from "./ProductImage";
-export { default as Order } from "./Order";
 export { default as OrderItem } from "./OrderItem";
 export { default as Shipment } from "./Shipment";
 export { default as ShipmentItem } from "./ShipmentItem";

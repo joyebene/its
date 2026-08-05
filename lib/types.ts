@@ -165,3 +165,12 @@ export interface User {
 
     createdAt:string;
 }
+
+export type CurrentLocation = {
+  latitude: number;
+  longitude: number;
+  updatedAt: string;
+  address?: string;
+  city?: string;
+  country?: string;
+};
